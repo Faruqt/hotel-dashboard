@@ -1,0 +1,88 @@
+[
+    {
+        "title" : "No. 4 King Junior Suite",
+        "description" : "Modern luxury with kingsized bed, walk-in shower, double sinks, sitting area and air conditioning.",
+        "image" : "image4",
+        "facilities" : [
+            "King sized bed",
+            "Air Conditioning",
+            "Sitting area",
+            "Large en-suite shower room",
+            "Internet TV",
+            "WiFi",
+            "Nespresso System",
+            "E-Concierge",
+            "All-night checkin",
+            "Luxury Amenities",
+            "Temple Spa toiletries",
+            "Towels and linen"
+        ],
+        "created_at" : "2025-03-17 11:30:35.330326",
+        "updated_at" : null
+    },
+    {
+        "title" : "No. 3 Luxury Double Room",
+        "description" : "Style and beauty with double bed, walk-in shower and daily servicing.",
+        "image" : "image3",
+        "facilities" : [
+            "Double bed",
+            "Air Conditioning",
+            "En-suite shower room",
+            "Daily servicing",
+            "Internet TV",
+            "WiFi",
+            "Nespresso System",
+            "E-Concierge",
+            "Luxury Amenities",
+            "All-night checkin",
+            "Temple Spa toiletries",
+            "Towels and linen"
+        ],
+        "created_at" : "2025-03-17 11:25:35.330326",
+        "updated_at" : null
+    },
+    {
+        "title" : "No. 2 Luxury Double Room",
+        "description" : "Luxury and comfort with double bed, walk-in shower and daily servicing.",
+        "image" : "image2",
+        "facilities" : [
+            "Double bed",
+            "Air Conditioning",
+            "En-suite shower room",
+            "Daily servicing",
+            "Internet TV",
+            "WiFi",
+            "Nespresso System",
+            "E-Concierge",
+            "Luxury Amenities",
+            "All-night checkin",
+            "Temple Spa toiletries",
+            "Towels and linen"
+        ],
+        "created_at" : "2025-03-17 11:20:35.330326",
+        "updated_at" : "2025-03-18 11:21:35.330326"
+    },
+    {
+        "title" : "No. 1 The Apartment",
+        "description" : "Two spacious bedrooms with kingsized beds, full bathroom, kitchen and living area set across two levels.",
+        "image" : "image1",
+        "facilities" : [
+            "2 double beds",
+            "Equipped Kitchen",
+            "Full bathroom",
+            "Daily servicing",
+            "Iron and ironing board",
+            "Dishwasher",
+            "WiFi",
+            "Nespresso System",
+            "Internet TV",
+            "E-Concierge",
+            "All-night checkin",
+            "Luxury Amenities",
+            "Temple Spa toiletries",
+            "Towels and linen"
+        ],
+        "created_at" : "2025-03-17 11:15:35.330326",
+        "updated_at" : "2025-03-18 11:18:35.330326"
+    }
+]
