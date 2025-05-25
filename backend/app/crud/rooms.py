@@ -6,7 +6,12 @@ from fastapi import HTTPException
 
 # local imports
 from app.models.rooms import Room, RoomFacility
-from app.schemas.rooms import RoomReadPaginated, RoomUpdate, RoomCreate
+from app.schemas.rooms import (
+    RoomReadPaginated,
+    RoomCompleteUpdate,
+    RoomCreate,
+    RoomPartialUpdate,
+)
 
 # create a logger instance
 logger = logging.getLogger(__name__)
@@ -142,13 +147,15 @@ def create_new_room(db: Session, room_data: RoomCreate) -> Room:
         raise
 
 
-def update_room_and_facilities(db: Session, room_data: RoomUpdate, room: Room) -> Room:
+def update_room_and_facilities(
+    db: Session, room_data: RoomCompleteUpdate, room: Room
+) -> Room:
     """
     Update a room in the database.
 
     Args:
         db (Session): The database session.
-        room_data (RoomUpdate): The data to update the room with.
+        room_data (RoomCompleteUpdate): The data to update the room with.
         room (Room): The Room object with updated data.
 
     Returns:
@@ -182,6 +189,47 @@ def update_room_and_facilities(db: Session, room_data: RoomUpdate, room: Room) -
         db.rollback()
         logger.error(
             f"An error occurred while trying to update room with ID {room.id}: {e}",
+            exc_info=True,
+        )
+        raise
+
+
+def partial_update_room(db: Session, room_data: RoomPartialUpdate, room: Room) -> Room:
+    """
+    Partially update a room in the database.
+
+    Args:
+        db (Session): The database session.
+        room_data (RoomPartialUpdate): The data to partially update the room with.
+        room (Room): The Room object to update.
+
+    Returns:
+        Room: The updated Room object.
+
+    Raises:
+        Exception: If an error occurs while partially updating the room.
+    """
+
+    try:
+        # Update only the fields that are provided in the partial update
+        for key, value in room_data.dict(exclude_none=True).items():
+            if value not in [None, ""]:
+                new_value = value.strip() if isinstance(value, str) else value
+                setattr(room, key, new_value)
+
+        # Commit the changes to the database
+        db.commit()
+
+        # Refresh the room object to reflect the changes
+        db.refresh(room)
+
+        logger.info(f"Successfully partially updated room with ID {room.id}")
+        return room
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An error occurred while trying to partially update room with ID {room.id}: {e}",
             exc_info=True,
         )
         raise
