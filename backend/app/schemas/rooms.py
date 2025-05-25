@@ -30,7 +30,7 @@ class RoomFacilityRead(BaseModel):
         from_attributes = True
 
 
-class RoomRead(BaseModel):
+class BaseRoomRead(BaseModel):
     """
     Room model representing a room in the system.
     """
@@ -38,8 +38,7 @@ class RoomRead(BaseModel):
     id: UUID
     title: str
     description: str
-    image_path: str
-    facilities: list[RoomFacilityRead] = []
+    facilities_list: list[str] = []
     created_at_str: str
     updated_at_str: Optional[str] = None
 
@@ -47,7 +46,20 @@ class RoomRead(BaseModel):
         from_attributes = True
 
 
-class RoomUpdate(BaseModel):
+class RoomRead(BaseRoomRead):
+    """
+    Room model for reading room details.
+    """
+
+    image_path: str
+    pdf_path: str
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+
+class RoomCompleteUpdate(BaseModel):
     """
     Room model for updating room details.
     """
@@ -58,9 +70,21 @@ class RoomUpdate(BaseModel):
     facilities: list[str] = []
 
 
+class RoomPartialUpdate(BaseModel):
+    """
+    Room model for partially updating room details.
+    """
+
+    title: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    pdf: Optional[str] = None
+    facilities: Optional[list[str]] = None
+
+
 class RoomReadPaginated(PaginatedResponse):
     """
     Paginated response model for rooms.
     """
 
-    data: list[RoomRead]
+    data: list[BaseRoomRead]
