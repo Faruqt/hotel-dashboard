@@ -2,7 +2,7 @@
     {
         "title" : "No. 4 King Junior Suite",
         "description" : "Modern luxury with kingsized bed, walk-in shower, double sinks, sitting area and air conditioning.",
-        "image" : "image4",
+        "image" : "image4.webp",
         "facilities" : [
             "King sized bed",
             "Air Conditioning",
@@ -23,7 +23,7 @@
     {
         "title" : "No. 3 Luxury Double Room",
         "description" : "Style and beauty with double bed, walk-in shower and daily servicing.",
-        "image" : "image3",
+        "image" : "image3.webp",
         "facilities" : [
             "Double bed",
             "Air Conditioning",
@@ -44,7 +44,7 @@
     {
         "title" : "No. 2 Luxury Double Room",
         "description" : "Luxury and comfort with double bed, walk-in shower and daily servicing.",
-        "image" : "image2",
+        "image" : "image2.webp",
         "facilities" : [
             "Double bed",
             "Air Conditioning",
@@ -65,7 +65,7 @@
     {
         "title" : "No. 1 The Apartment",
         "description" : "Two spacious bedrooms with kingsized beds, full bathroom, kitchen and living area set across two levels.",
-        "image" : "image1",
+        "image" : "image1.webp",
         "facilities" : [
             "2 double beds",
             "Equipped Kitchen",
