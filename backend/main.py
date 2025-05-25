@@ -32,4 +32,4 @@ def on_startup():
 include_api_routes(app)
 
 # Serve images from the static/images directory
-mount_static_files(app, url_path="/images", sub_dir=IMAGE_DIR)
+mount_static_files(app, url_path=f"/{IMAGE_DIR}", sub_dir=IMAGE_DIR)

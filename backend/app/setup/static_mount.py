@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 # local imports
-from app.config.settings import STATIC_DIR
+from app.config.settings import STATIC_DIR_PATH
 
 
 def mount_static_files(app: FastAPI, url_path: str, sub_dir: str) -> None:
@@ -21,7 +21,7 @@ def mount_static_files(app: FastAPI, url_path: str, sub_dir: str) -> None:
     """
 
     # Construct the full path to the static directory
-    static_dir = os.path.join(STATIC_DIR, sub_dir)
+    static_dir = os.path.join(STATIC_DIR_PATH, sub_dir)
 
     # Mount the static directory to serve static files
     app.mount(url_path, StaticFiles(directory=static_dir), name="static")
