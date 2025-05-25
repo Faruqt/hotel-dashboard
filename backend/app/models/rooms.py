@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 
 # local imports
 from app.database.base import Base
-from app.config.settings import IMAGE_DIR, DATE_OUTPUT_FORMAT
+from app.config.settings import APP_URL, IMAGE_DIR, PDF_DIR, DATE_OUTPUT_FORMAT
 
 
 class Room(Base):
@@ -22,6 +22,7 @@ class Room(Base):
     title = Column(String, index=True, nullable=False, unique=True)
     description = Column(String)
     image = Column(String)
+    pdf = Column(String)
     facilities = relationship(
         "RoomFacility",
         backref="room",
@@ -36,7 +37,23 @@ class Room(Base):
     @property
     def image_path(self):
         """Return the full URL for the room image."""
-        return f"{IMAGE_DIR}/{self.image}" if self.image else None
+        return f"{APP_URL}/{IMAGE_DIR}/{self.image}" if self.image else None
+
+    @property
+    def pdf_path(self):
+        """Return the full URL for the room PDF."""
+        return f"{APP_URL}/{PDF_DIR}/{self.pdf}" if self.pdf else None
+
+    @property
+    def facilities_list(self):
+        """
+        Return a list of facility names associated with the room.
+        """
+        return (
+            [facility.facility_name for facility in self.facilities]
+            if self.facilities
+            else []
+        )
 
     @property
     def created_at_str(self):
