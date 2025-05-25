@@ -2,17 +2,22 @@
 import logging
 import os
 from uuid import UUID, uuid4
+from datetime import datetime
+from jinja2 import Environment, FileSystemLoader
 from fastapi import HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 # local imports
 from app.crud.rooms import get_room_by_id
 from app.models.rooms import Room
-from app.config.settings import STATIC_DIR, IMAGE_DIR
+from app.utils.common import create_pdf_from_html
+from app.config.settings import IMAGE_DIR_PATH, TEMPLATES_DIR_PATH
 
 
 # create a logger instance
 logger = logging.getLogger(__name__)
+
+env = Environment(loader=FileSystemLoader(TEMPLATES_DIR_PATH))
 
 
 def get_room_or_error(db: Session, room_id: UUID, action: str) -> Room:
@@ -88,17 +93,14 @@ def upload_image_file(file: UploadFile = File(...)) -> str:
         if not file.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="File must be an image")
 
-        # Image directory path
-        image_dir = os.path.join(STATIC_DIR, IMAGE_DIR)
-
         # Ensure the image directory exists
-        os.makedirs(image_dir, exist_ok=True)
+        os.makedirs(IMAGE_DIR_PATH, exist_ok=True)
 
         # make file name unique by adding a uuid
         file_name = f"{uuid4().hex}_{file.filename}"
 
         # Save the uploaded file to the image directory
-        file_path = os.path.join(image_dir, file_name)
+        file_path = os.path.join(IMAGE_DIR_PATH, file_name)
 
         with open(file_path, "wb") as f:
             f.write(file.file.read())
@@ -129,11 +131,9 @@ def cleanup_image_file(file_name: str) -> None:
         HTTPException: If an error occurs while removing the image file.
     """
     try:
-        # Image directory path
-        image_dir = os.path.join(STATIC_DIR, IMAGE_DIR)
 
         # Full path to the image file
-        file_path = os.path.join(image_dir, file_name)
+        file_path = os.path.join(IMAGE_DIR_PATH, file_name)
 
         # Check if the file exists before attempting to remove it
         if os.path.exists(file_path):
@@ -156,3 +156,54 @@ def safe_cleanup_image(image_name):
         logger.error(
             f"Failed to cleanup image file {image_name}: {cleanup_err}", exc_info=True
         )
+
+
+def create_room_pdf(room: Room) -> str:
+    """
+    Create a PDF for a room using its details.
+
+    Args:
+        room (Room): The Room object containing details to be included in the PDF.
+
+    Returns:
+        pdf_name (str): The name of the created PDF file.
+
+    Raises:
+        HTTPException: If an error occurs while creating the PDF.
+    """
+    try:
+
+        # get current year
+        current_year = datetime.now().year
+
+        # Ensure the templates directory exists
+        template = env.get_template("room_template.html")
+
+        context = {
+            "title": room.title,
+            "description": room.description,
+            "image": room.image,
+            "facilities": room.facilities_list,
+            "created_at": room.created_at_str,
+            "year": current_year,
+        }
+
+        html_out = template.render(**context)
+
+        # Generate the PDF file
+        pdf_name = create_pdf_from_html(
+            pdf_name=room.title,
+            html_content=html_out,
+            caller="Room PDF Creation",
+        )
+
+        logger.info(f"PDF created successfully: {pdf_name}")
+
+        return pdf_name
+
+    except Exception as e:
+        logger.error(
+            f"An error occurred while creating PDF for room {room.title}: {e}",
+            exc_info=True,
+        )
+        raise e
