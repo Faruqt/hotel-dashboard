@@ -6,3 +6,5 @@ pydantic
 python-multipart
 weasyprint
 jinja2
+pytest
+httpx
