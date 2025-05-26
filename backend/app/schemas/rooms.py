@@ -26,7 +26,7 @@ class RoomFacilityRead(BaseModel):
     id: UUID
     facility_name: str
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 
@@ -42,9 +42,6 @@ class BaseRoomRead(BaseModel):
     created_at_str: str
     updated_at_str: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class RoomRead(BaseRoomRead):
     """
@@ -52,11 +49,10 @@ class RoomRead(BaseRoomRead):
     """
 
     image_path: str
-    pdf_path: str
+    pdf_path: Optional[str]
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
-        orm_mode = True
 
 
 class RoomCompleteUpdate(BaseModel):
@@ -88,3 +84,6 @@ class RoomReadPaginated(PaginatedResponse):
     """
 
     data: list[BaseRoomRead]
+
+    class ConfigDict:
+        from_attributes = True
