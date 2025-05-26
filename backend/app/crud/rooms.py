@@ -7,6 +7,7 @@ from fastapi import HTTPException
 # local imports
 from app.models.rooms import Room, RoomFacility
 from app.schemas.rooms import (
+    BaseRoomRead,
     RoomReadPaginated,
     RoomCompleteUpdate,
     RoomCreate,
@@ -43,6 +44,19 @@ def get_rooms(
 
         # Fetch the rooms with pagination
         rooms = db.query(Room).offset(offset).limit(size + 1).all()
+
+        # Convert the Room objects to BaseRoomRead objects
+        rooms = [
+            BaseRoomRead(
+                id=room.id,
+                title=room.title,
+                description=room.description,
+                facilities_list=room.facilities_list,
+                created_at_str=room.created_at_str,
+                updated_at_str=(room.updated_at_str if room.updated_at else None),
+            )
+            for room in rooms
+        ]
 
         has_next = len(rooms) > size
         if has_next:
@@ -113,15 +127,7 @@ def create_new_room(db: Session, room_data: RoomCreate) -> Room:
     try:
 
         # Check if a room with the same title already exists
-        existing_room = db.query(Room).filter(Room.title == room_data.title).first()
-        if existing_room:
-            logger.error(
-                f"Room with title '{room_data.title}' already exists. Cannot create a new room."
-            )
-            raise HTTPException(
-                status_code=400,
-                detail=f"Room with title '{room_data.title}' already exists.",
-            )
+        check_if_room_with_title_exists(db=db, title=room_data.title)
 
         # Create a new Room instance from the provided data
         # but exclude facilities for now
@@ -141,6 +147,12 @@ def create_new_room(db: Session, room_data: RoomCreate) -> Room:
         logger.info(f"Successfully created room with ID {new_room.id}")
         return new_room
 
+    except HTTPException as e:
+        db.rollback()
+        logger.error(
+            f"An error occurred while creating a new room: {e.detail}", exc_info=True
+        )
+        raise
     except Exception as e:
         db.rollback()  # Rollback the session in case of error
         logger.error(f"An error occurred while creating a new room: {e}", exc_info=True)
@@ -166,6 +178,9 @@ def update_room_and_facilities(
     """
 
     try:
+        # Check if a room with the same title already exists
+        check_if_room_with_title_exists(db=db, title=room_data.title, room_id=room.id)
+
         # Update room fields except facilities
         for key, value in room_data.dict(exclude={"facilities"}).items():
             if value not in [None, ""]:
@@ -185,6 +200,13 @@ def update_room_and_facilities(
         logger.info(f"Successfully updated room with ID {room.id}")
         return room
 
+    except HTTPException as e:
+        db.rollback()  # Rollback the session in case of error
+        logger.error(
+            f"An error occurred while updating room with ID {room.id}: {e}",
+            exc_info=True,
+        )
+        raise
     except Exception as e:
         db.rollback()
         logger.error(
@@ -211,6 +233,7 @@ def partial_update_room(db: Session, room_data: RoomPartialUpdate, room: Room) -
     """
 
     try:
+
         # Update only the fields that are provided in the partial update
         for key, value in room_data.dict(exclude_none=True).items():
             if value not in [None, ""]:
@@ -235,6 +258,54 @@ def partial_update_room(db: Session, room_data: RoomPartialUpdate, room: Room) -
         raise
 
 
+def check_if_room_with_title_exists(
+    db: Session, title: str, room_id: UUID | None = None
+) -> None:
+    """
+    Check if a room with the given title exists in the database.
+
+    Args:
+        db (Session): The database session.
+        title (str): The title of the room to check.
+        room_id (UUID | None): The ID of the room to exclude from the check (optional).
+
+    Returns:
+        None
+
+    Raises:
+        Exception: If an error occurs while checking for the room.
+    """
+
+    try:
+        query = db.query(Room).filter(Room.title == title.strip())
+        if room_id:
+            query = query.filter(Room.id != room_id)
+
+        exists = query.first()
+
+        if exists:
+            logger.warning(f"Room with title '{title}' already exists in the database.")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Room with title '{title}' already exists.",
+            )
+
+        logger.info(f"Checked existence of room with title '{title}': {exists}")
+
+    except HTTPException as e:
+        logger.error(
+            f"An error occurred while checking for room with title '{title}': {e}",
+            exc_info=True,
+        )
+        raise e
+    except Exception as e:
+        logger.error(
+            f"An error occurred while checking for room with title '{title}': {e}",
+            exc_info=True,
+        )
+        raise
+
+
 def create_room_facilities(db: Session, room: Room, facilities: list[str]) -> None:
     """
     Create facilities for a room in the database.
@@ -252,6 +323,7 @@ def create_room_facilities(db: Session, room: Room, facilities: list[str]) -> No
     """
 
     new_facilities = []
+
     try:
         for facility in facilities:
             new_facility = RoomFacility(facility_name=facility.strip(), room=room)
