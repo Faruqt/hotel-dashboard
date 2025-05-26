@@ -9,7 +9,7 @@ import LabeledInput from "./LabeledInput";
 import requestApi from "../lib/axios";
 import ToastConfig from "../utils/toastConfig";
 import { PageSpinner } from "./LoadingSpinners";
-import Modal from "./popUpModal";
+import Modal from "./PopUpModal";
 
 // static imports
 import { ChevronLeft, TrashIcon } from "lucide-react";
@@ -240,7 +240,6 @@ function RoomDetails() {
       });
   };
 
-
   const handleDeleteRoom = async () => {
     if (!room || !room.id) {
       toast.error("Room data is not available.", ToastConfig);
@@ -248,29 +247,29 @@ function RoomDetails() {
     }
     setLoading(true);
     requestApi({
-        method: "DELETE",
-        url: `${API_ENDPOINT}/${room.id}`,
-        })
-        .then(() => {
-            toast.success("Room deleted successfully.", ToastConfig);
-            // navigate to rooms page
-            navigate("/");
-        })
-        .catch((error) => {
-            const errMsg =
-            typeof error?.response?.data?.detail === "string"
-                ? error.response.data.detail
-                : "An error occurred while deleting the room.";
-            if (error.response && error.response.status === 400) {
-            toast.error(errMsg, ToastConfig);
-            } else {
-            toast.error(errMsg, ToastConfig);
-            }
-        })
-        .finally(() => {
-            setLoading(false);
-        });
-    }
+      method: "DELETE",
+      url: `${API_ENDPOINT}/${room.id}`,
+    })
+      .then(() => {
+        toast.success("Room deleted successfully.", ToastConfig);
+        // navigate to rooms page
+        navigate("/");
+      })
+      .catch((error) => {
+        const errMsg =
+          typeof error?.response?.data?.detail === "string"
+            ? error.response.data.detail
+            : "An error occurred while deleting the room.";
+        if (error.response && error.response.status === 400) {
+          toast.error(errMsg, ToastConfig);
+        } else {
+          toast.error(errMsg, ToastConfig);
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   return (
     <div className="min-w-[1060px]">
@@ -299,14 +298,15 @@ function RoomDetails() {
         <div className="font-karla">
           <div className="flex justify-between items-center mb-[23px] w-[600px]">
             <div className="text-xl font-medium text-dark">Room details</div>
-            {id &&
-            <div
-              className="flex items-center gap-2 cursor-pointer text-button text-xs underline font-inter"
-              onClick={() => setShowDeleteModal(true)}
-            >
-              <DeleteIcon width={15} height={15} className="mr-[3px]" />
-              <span>DELETE ROOM</span>
-            </div>}
+            {id && (
+              <div
+                className="flex items-center gap-2 cursor-pointer text-button text-xs underline font-inter"
+                onClick={() => setShowDeleteModal(true)}
+              >
+                <DeleteIcon width={15} height={15} className="mr-[3px]" />
+                <span>DELETE ROOM</span>
+              </div>
+            )}
           </div>
           <div className="flex flex-col mb-[20px]">
             <span className="font-semibold text-xs mb-[7px]">Title</span>
@@ -437,16 +437,14 @@ function RoomDetails() {
         </div>
       </div>
 
-      {
-        showDeleteModal && (
-            <Modal 
-                onConfirm={handleDeleteRoom}
-               onClose={() => setShowDeleteModal(false)}
-                message="You are deleting a room..."
-                />)
-      }
+      {showDeleteModal && (
+        <Modal
+          onConfirm={handleDeleteRoom}
+          onClose={() => setShowDeleteModal(false)}
+          message="You are deleting a room..."
+        />
+      )}
     </div>
-    
   );
 }
 export default RoomDetails;
