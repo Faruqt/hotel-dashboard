@@ -1,6 +1,7 @@
 # library imports
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 # local imports
 from app.database.base import Base, engine
@@ -31,6 +32,17 @@ async def lifespan(app: FastAPI):
 
 # create the FastAPI application instance
 app = FastAPI(lifespan=lifespan)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # development server
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include the API router for various endpoints
 include_api_routes(app)
