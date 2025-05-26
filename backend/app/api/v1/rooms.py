@@ -163,8 +163,6 @@ def create_room(
         logger.error(
             f"An error occurred while creating the room: {e.detail}", exc_info=True
         )
-        if "image_name" in locals():
-            safe_cleanup_image(image_name)
         raise e
     except Exception as e:
         logger.error(f"An error occurred while creating the room: {e}", exc_info=True)
@@ -243,8 +241,6 @@ def update_room(
         return room
 
     except HTTPException as e:
-        if "image_name" in locals():
-            safe_cleanup_image(image_name)
         raise e
     except Exception as e:
         logger.error(

@@ -227,16 +227,17 @@ def test_create_room_duplicate_title(client):
         assert response.json()["title"] == "Duplicate Room"
 
     # create the same room again to trigger duplicate title error
-    response = client.post(
-        API_URL,
-        data=generate_room_payload(
-            title="Duplicate Room",
-            description="This room has a duplicate title.",
-            facilities='["WiFi", "Parking"]',
-        ),
-        files={"image": ("test.jpg", b"fake image data", "image/jpeg")},
-    )
-    assert response.status_code == 400
+    with patch("app.api.v1.rooms.upload_image_file", return_value="img.jpg"):
+        response = client.post(
+            API_URL,
+            data=generate_room_payload(
+                title="Duplicate Room",
+                description="This room has a duplicate title.",
+                facilities='["WiFi", "Parking"]',
+            ),
+            files={"image": ("test.jpg", b"fake image data", "image/jpeg")},
+        )
+        assert response.status_code == 400
 
 
 def test_create_room_raise_exception(client):
