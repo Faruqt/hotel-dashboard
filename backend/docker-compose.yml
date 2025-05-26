@@ -1,0 +1,15 @@
+services:
+  backend:
+    build:
+      context: .
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]  # Adjust endpoint as needed
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+      

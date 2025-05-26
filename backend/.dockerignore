@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches
+.pytest_cache/
+.coverage
+.tox/
+*.log
+
+# Virtual environments
+env/
+venv/
+
+# Editor configs
+.vscode/
+.idea/
+
+# macOS/Linux junk
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Environment config
+local.env
+.env
+
+# Avoid including test data or fixtures
+*.sqlite3
+sqlite.db
+*.bak
+*.tmp
