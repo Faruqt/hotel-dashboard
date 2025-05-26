@@ -9,7 +9,7 @@ from app.setup.static_mount import mount_static_files
 from app.setup.logging_config import setup_logging
 from app import models
 from app.database.init_db import populate_data
-from app.config.settings import IMAGE_DIR
+from app.config.settings import IMAGE_DIR, PDF_DIR
 
 
 @asynccontextmanager
@@ -37,3 +37,5 @@ include_api_routes(app)
 
 # Serve images from the static/images directory
 mount_static_files(app, url_path=f"/{IMAGE_DIR}", sub_dir=IMAGE_DIR)
+# Serve pdf from the static/pdf directory
+mount_static_files(app, url_path=f"/{PDF_DIR}", sub_dir=PDF_DIR)
