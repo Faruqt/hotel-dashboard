@@ -56,6 +56,13 @@ class Room(Base):
         )
 
     @property
+    def facilities_count(self):
+        """
+        Return the count of facilities associated with the room.
+        """
+        return len(self.facilities) if self.facilities else 0
+
+    @property
     def created_at_str(self):
         """Return the created_at date as a string."""
         return self._format_date(self.created_at)

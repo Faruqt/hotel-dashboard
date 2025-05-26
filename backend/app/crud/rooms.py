@@ -51,7 +51,7 @@ def get_rooms(
                 id=room.id,
                 title=room.title,
                 description=room.description,
-                facilities_list=room.facilities_list,
+                facilities_count=room.facilities_count,
                 created_at_str=room.created_at_str,
                 updated_at_str=(room.updated_at_str if room.updated_at else None),
             )

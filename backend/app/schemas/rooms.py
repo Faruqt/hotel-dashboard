@@ -38,7 +38,7 @@ class BaseRoomRead(BaseModel):
     id: UUID
     title: str
     description: str
-    facilities_list: list[str] = []
+    facilities_count: Optional[int] = None
     created_at_str: str
     updated_at_str: Optional[str] = None
 
@@ -48,6 +48,7 @@ class RoomRead(BaseRoomRead):
     Room model for reading room details.
     """
 
+    facilities_list: list[str] = []
     image_path: str
     pdf_path: Optional[str]
 
