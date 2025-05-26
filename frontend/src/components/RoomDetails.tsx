@@ -161,6 +161,11 @@ function RoomDetails() {
             : "An error occurred while creating rooms.";
         if (error.response && error.response.status === 400) {
           toast.error(errMsg, ToastConfig);
+        } else if (error.response && error.response.status === 422) {
+          toast.error(
+            "Invalid data provided. Please check your input and ensure an image is also provided.",
+            ToastConfig
+          );
         } else {
           toast.error(errMsg, ToastConfig);
         }
