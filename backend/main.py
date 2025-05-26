@@ -1,5 +1,6 @@
 # library imports
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
 # local imports
 from app.database.base import Base, engine
@@ -11,22 +12,25 @@ from app.database.init_db import populate_data
 from app.config.settings import IMAGE_DIR
 
 
-# Initialize logging configuration
-setup_logging()
-
-app = FastAPI()
-
-
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
     Startup event handler to create the database tables.
     """
+    # Initialize logging configuration
+    setup_logging()
+
     # Create the database tables if they don't exist
     Base.metadata.create_all(bind=engine)
+
     # Preload data into the database
     populate_data()
 
+    yield
+
+
+# create the FastAPI application instance
+app = FastAPI(lifespan=lifespan)
 
 # Include the API router for various endpoints
 include_api_routes(app)
