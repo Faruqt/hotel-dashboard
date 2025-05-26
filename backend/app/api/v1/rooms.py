@@ -22,10 +22,12 @@ from app.crud.rooms import (
     delete_room_entry,
     partial_update_room,
 )
-from app.utils.rooms import (
-    get_room_or_error,
+from app.utils.common import (
     upload_image_file,
     safe_cleanup_image,
+)
+from app.utils.rooms import (
+    get_room_or_error,
     create_room_pdf,
 )
 from app.config.settings import MAX_PAGINATION_LIMIT, DEFAULT_PAGINATION_SIZE
@@ -84,6 +86,7 @@ def get_room(room_id: UUID, db: Session = Depends(get_db)) -> RoomRead:
         HTTPException: If the room is not found or if an unexpected error occurs.
     """
     try:
+
         room = get_room_or_error(db=db, room_id=room_id, action="fetching")
 
         return room
@@ -125,6 +128,21 @@ def create_room(
         HTTPException: If an unexpected error occurs while creating the room.
     """
     try:
+
+        is_data_valid = all(
+            [
+                title.strip(),
+                description.strip(),
+                image,
+                image.filename,
+                facilities.strip(),
+            ]
+        )
+        if not is_data_valid:
+            raise HTTPException(
+                status_code=400,
+                detail="All fields are required: title, description, image, and facilities",
+            )
 
         # Upload the image file and get the image name
         image_name = upload_image_file(file=image)
@@ -185,6 +203,22 @@ def update_room(
         HTTPException: If the room is not found or if an unexpected error occurs.
     """
     try:
+
+        is_data_valid = all(
+            [
+                room_id,
+                title.strip(),
+                description.strip(),
+                facilities.strip(),
+            ]
+        )
+        if not is_data_valid:
+            raise HTTPException(
+                status_code=400,
+                detail="Room ID, title, description, and facilities are required",
+            )
+
+        # Fetch the existing room to update
         existing_room = get_room_or_error(db=db, room_id=room_id, action="update")
 
         # Only upload a new image if one is provided
