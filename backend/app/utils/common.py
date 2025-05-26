@@ -1,14 +1,16 @@
 # library imports
 import logging
-import math
 import re
 import os
+from uuid import UUID, uuid4
 from datetime import datetime
 from weasyprint import HTML
-from typing import Optional
+from fastapi import HTTPException, UploadFile, File
+
 
 # local imports
-from app.config.settings import PDF_DIR_PATH, STATIC_DIR_PATH
+from app.config.settings import PDF_DIR_PATH, STATIC_DIR_PATH, IMAGE_DIR_PATH
+
 
 # create a logger instance
 logger = logging.getLogger(__name__)
@@ -25,7 +27,7 @@ def sanitize_filename(title: str) -> str:
         str: The sanitized filename.
     """
     # Replace spaces with underscores and remove non-alphanumeric characters
-    return re.sub(r"[^a-zA-Z0-9_-]", "", title.replace(" ", "_")).lower()
+    return re.sub(r"[^a-zA-Z0-9_-]", "", title.strip().replace(" ", "_")).lower()
 
 
 def convert_string_to_datetime(date_string: str) -> datetime:
@@ -56,36 +58,97 @@ def convert_string_to_datetime(date_string: str) -> datetime:
         raise
 
 
-def calculate_pagination_metadata(
-    current_page: int, page_size: int, total_items: int
-) -> dict:
-    """Calculate pagination metadata.
+def upload_image_file(file: UploadFile = File(...)) -> str:
+    """
+    Upload an image file to the image directory.
 
     Args:
-        current_page (int): The current page number.
-        page_size (int): The number of items per page.
-        total_items (int): The total number of items.
+        file (UploadFile): The image file to upload.
 
     Returns:
-        dict: A dictionary containing pagination metadata, including:
-            - total_pages: Total number of pages
-            - next_page: The next page number (None if on the last page)
-            - prev_page: The previous page number (None if on the first page)
-            - current_page: The current page number
-            - page_size: The number of items per page
-            - total_items: The total number of items
+        str: The name of the uploaded image file.
+
+    Raises:
+        HTTPException: If the file is not provided, does not have a filename,
+                       or is not an image.
     """
 
-    total_pages = math.ceil(total_items / page_size) if total_items > 0 else 1
+    try:
+        # Check if the file is provided
+        if not file:
+            raise HTTPException(status_code=400, detail="No file provided")
 
-    return {
-        "total_pages": total_pages,
-        "next_page": current_page + 1 if current_page < total_pages else None,
-        "prev_page": current_page - 1 if current_page > 1 else None,
-        "current_page": current_page,
-        "page_size": page_size,
-        "total_items": total_items,
-    }
+        # Check if the file has a filename
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="File must have a filename")
+
+        # Check if the uploaded file is an image
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="File must be an image")
+
+        # Ensure the image directory exists
+        os.makedirs(IMAGE_DIR_PATH, exist_ok=True)
+
+        # make file name unique by adding a uuid
+        file_name = f"{uuid4().hex}_{file.filename}"
+
+        # Save the uploaded file to the image directory
+        file_path = os.path.join(IMAGE_DIR_PATH, file_name)
+
+        with open(file_path, "wb") as f:
+            f.write(file.file.read())
+
+        logger.info(f"Image uploaded successfully: {file_name}")
+
+        # Return the name of the uploaded image file
+        return file_name
+
+    except Exception as e:
+        logger.error(
+            f"An error occurred while uploading the image file: {e}", exc_info=True
+        )
+        raise e
+
+
+def cleanup_image_file(file_name: str) -> None:
+    """
+    Remove an image file from the image directory.
+
+    Args:
+        file_name (str): The name of the image file to remove.
+
+    Returns:
+        None
+
+    Raises:
+        HTTPException: If an error occurs while removing the image file.
+    """
+    try:
+
+        # Full path to the image file
+        file_path = os.path.join(IMAGE_DIR_PATH, file_name)
+
+        # Check if the file exists before attempting to remove it
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"Image file removed successfully: {file_name}")
+        else:
+            logger.warning(f"Image file not found for removal: {file_name}")
+
+    except Exception as e:
+        logger.error(
+            f"An error occurred while removing the image file: {e}", exc_info=True
+        )
+        raise e
+
+
+def safe_cleanup_image(image_name):
+    try:
+        cleanup_image_file(image_name)
+    except Exception as cleanup_err:
+        logger.error(
+            f"Failed to cleanup image file {image_name}: {cleanup_err}", exc_info=True
+        )
 
 
 def create_pdf_from_html(
@@ -117,8 +180,6 @@ def create_pdf_from_html(
         )
 
         pdf_path = os.path.join(PDF_DIR_PATH, sanitized_name)
-
-        print("Creating PDF at path:", STATIC_DIR_PATH)
 
         HTML(string=html_content, base_url=STATIC_DIR_PATH).write_pdf(
             pdf_path,

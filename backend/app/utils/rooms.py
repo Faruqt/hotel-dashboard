@@ -1,17 +1,17 @@
 # library imports
 import logging
 import os
-from uuid import UUID, uuid4
+from uuid import UUID
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
-from fastapi import HTTPException, UploadFile, File
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 # local imports
 from app.crud.rooms import get_room_by_id
 from app.models.rooms import Room
 from app.utils.common import create_pdf_from_html
-from app.config.settings import IMAGE_DIR_PATH, TEMPLATES_DIR_PATH
+from app.config.settings import TEMPLATES_DIR_PATH
 
 
 # create a logger instance
@@ -63,99 +63,6 @@ def get_room_or_error(db: Session, room_id: UUID, action: str) -> Room:
             exc_info=True,
         )
         raise e
-
-
-def upload_image_file(file: UploadFile = File(...)) -> str:
-    """
-    Upload an image file to the image directory.
-
-    Args:
-        file (UploadFile): The image file to upload.
-
-    Returns:
-        str: The name of the uploaded image file.
-
-    Raises:
-        HTTPException: If the file is not provided, does not have a filename,
-                       or is not an image.
-    """
-
-    try:
-        # Check if the file is provided
-        if not file:
-            raise HTTPException(status_code=400, detail="No file provided")
-
-        # Check if the file has a filename
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="File must have a filename")
-
-        # Check if the uploaded file is an image
-        if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
-
-        # Ensure the image directory exists
-        os.makedirs(IMAGE_DIR_PATH, exist_ok=True)
-
-        # make file name unique by adding a uuid
-        file_name = f"{uuid4().hex}_{file.filename}"
-
-        # Save the uploaded file to the image directory
-        file_path = os.path.join(IMAGE_DIR_PATH, file_name)
-
-        with open(file_path, "wb") as f:
-            f.write(file.file.read())
-
-        logger.info(f"Image uploaded successfully: {file_name}")
-
-        # Return the name of the uploaded image file
-        return file_name
-
-    except Exception as e:
-        logger.error(
-            f"An error occurred while uploading the image file: {e}", exc_info=True
-        )
-        raise e
-
-
-def cleanup_image_file(file_name: str) -> None:
-    """
-    Remove an image file from the image directory.
-
-    Args:
-        file_name (str): The name of the image file to remove.
-
-    Returns:
-        None
-
-    Raises:
-        HTTPException: If an error occurs while removing the image file.
-    """
-    try:
-
-        # Full path to the image file
-        file_path = os.path.join(IMAGE_DIR_PATH, file_name)
-
-        # Check if the file exists before attempting to remove it
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logger.info(f"Image file removed successfully: {file_name}")
-        else:
-            logger.warning(f"Image file not found for removal: {file_name}")
-
-    except Exception as e:
-        logger.error(
-            f"An error occurred while removing the image file: {e}", exc_info=True
-        )
-        raise e
-
-
-def safe_cleanup_image(image_name):
-    try:
-        cleanup_image_file(image_name)
-    except Exception as cleanup_err:
-        logger.error(
-            f"Failed to cleanup image file {image_name}: {cleanup_err}", exc_info=True
-        )
 
 
 def create_room_pdf(room: Room) -> str:
